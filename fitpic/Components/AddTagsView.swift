@@ -10,12 +10,14 @@ struct AddTagsView: View {
     @Binding var tags: [String]
     var onSubmit: () -> Void
 
+    @EnvironmentObject private var store: FitPicStore
     @State private var inputText = ""
 
-    private let suggestions = [
-        "Casual", "Formal", "Workout", "Office",
-        "Weekend", "Smart Casual", "Athleisure", "Going Out"
-    ]
+    /// Personalized suggestions: user's own tags ranked by frequency + recency,
+    /// filled out with seed tags, excluding anything already selected.
+    private var suggestions: [String] {
+        store.tagSuggestions(excluding: tags, limit: 15)
+    }
 
     var body: some View {
         NavigationStack {
@@ -49,11 +51,10 @@ struct AddTagsView: View {
                         }
                     }
 
-                    let available = suggestions.filter { !tags.contains($0) }
-                    if !available.isEmpty {
+                    if !suggestions.isEmpty {
                         tagSection(title: "Suggestions") {
                             FlowLayout(horizontalSpacing: 8, verticalSpacing: 8) {
-                                ForEach(available, id: \.self) { tag in
+                                ForEach(suggestions, id: \.self) { tag in
                                     Button { tags.append(tag) } label: {
                                         TagChip(label: tag, interactive: false)
                                     }
