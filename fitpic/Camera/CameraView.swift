@@ -10,6 +10,10 @@ struct CameraView: View {
     var onComplete: (UIImage, [String]) -> Void
     var onDismiss: () -> Void
 
+    /// Aspect ratio of the framed capture area. Matches the feed cell so that
+    /// what the user frames is exactly what they see in the feed.
+    var captureAspectRatio: CGFloat = FitPicCell.defaultAspectRatio
+
     @StateObject private var camera = CameraService()
     @GestureState private var pinchStartZoom: CGFloat? = nil
 
@@ -20,9 +24,20 @@ struct CameraView: View {
 
     var body: some View {
         ZStack {
-            CameraPreviewView(session: camera.session)
-                .ignoresSafeArea()
-                .gesture(pinchGesture)
+            Color.black.ignoresSafeArea()
+
+            VStack {
+                Spacer(minLength: 0)
+
+                // Live preview constrained to the capture aspect ratio,
+                // so the framed area equals the saved/feed result.
+                CameraPreviewView(session: camera.session)
+                    .aspectRatio(captureAspectRatio, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .gesture(pinchGesture)
+
+                Spacer(minLength: 0)
+            }
 
             VStack {
                 topBar
@@ -30,12 +45,16 @@ struct CameraView: View {
                 bottomBar
             }
         }
-        .onAppear { camera.start() }
+        .onAppear {
+            camera.captureAspectRatio = captureAspectRatio
+            camera.start()
+        }
         .onDisappear { camera.stop() }
         // Step 1: photo captured → show review screen
         .fullScreenCover(item: $previewImage.asIdentifiable) { wrapper in
             PhotoPreviewView(
                 image: wrapper.value,
+                aspectRatio: captureAspectRatio,
                 onRetake: { previewImage = nil },
                 onAccept: { image in
                     previewImage = nil

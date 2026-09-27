@@ -7,6 +7,7 @@ import SwiftUI
 struct PhotoPreviewView: View {
 
     let image: UIImage
+    var aspectRatio: CGFloat = FitPicCell.defaultAspectRatio
     var onRetake: () -> Void
     var onAccept: (UIImage) -> Void
 
@@ -14,10 +15,17 @@ struct PhotoPreviewView: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            Image(uiImage: image)
-                .resizable()
-                .scaledToFit()
-                .ignoresSafeArea()
+            VStack {
+                Spacer(minLength: 0)
+
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .aspectRatio(aspectRatio, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                Spacer(minLength: 0)
+            }
 
             VStack {
                 Spacer()

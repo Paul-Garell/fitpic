@@ -2,12 +2,14 @@ import SwiftUI
 
 // MARK: - FitPicCell
 
-/// Displays a single FitPic — header date, full-width photo, and a horizontal tag strip.
+/// Displays a single FitPic — header (date and/or time), full-width photo, and a horizontal tag strip.
 /// The three-dot menu in the top-right corner surfaces delete and edit-tags actions.
 ///
 /// - Parameter photoAspectRatio: Width-to-height ratio of the photo frame.
 ///   Defaults to `FitPicCell.defaultAspectRatio` (4:5 portrait).
-///   Pass a different value to change shape without touching layout logic.
+/// - Parameter showsDate: When true (default) the header reads "your fit on <date> · <time>".
+///   Set false when the surrounding context already shows the day (e.g. a section header),
+///   in which case only the time is displayed.
 struct FitPicCell: View {
 
     /// Default photo aspect ratio: 4 wide : 5 tall — good for full-outfit shots.
@@ -15,12 +17,13 @@ struct FitPicCell: View {
 
     let fitPic: FitPic
     var photoAspectRatio: CGFloat = defaultAspectRatio
+    var showsDate: Bool = true
     var onDelete: (() -> Void)? = nil
     var onEditTags: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            dateHeader
+            header
             photoStack
             if !fitPic.tags.isEmpty {
                 tagStrip
@@ -33,14 +36,28 @@ struct FitPicCell: View {
 
     // MARK: Sub-views
 
-    private var dateHeader: some View {
-        Text(fitPic.date.fitPicLabel)
-            .font(.subheadline)
-            .fontWeight(.semibold)
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 16)
-            .padding(.top, 14)
-            .padding(.bottom, 10)
+    private var header: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            if showsDate {
+                Text(fitPic.date.fitPicLabel)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+
+                Text("·")
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
+            }
+
+            Text(fitPic.date.fitPicTime)
+                .font(.subheadline)
+                .fontWeight(showsDate ? .regular : .semibold)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 16)
+        .padding(.top, 14)
+        .padding(.bottom, 10)
     }
 
     private var photoStack: some View {
@@ -130,6 +147,11 @@ private extension Date {
 
         let monthYear = formatted(.dateTime.month(.wide).year())
         return "your fit on \(monthYear.split(separator: " ").first ?? "") \(day)\(suffix), \(calendar.component(.year, from: self))"
+    }
+
+    /// Localized clock time the photo was taken, e.g. "9:41 PM".
+    var fitPicTime: String {
+        formatted(.dateTime.hour().minute())
     }
 
     private func ordinalSuffix(for day: Int) -> String {

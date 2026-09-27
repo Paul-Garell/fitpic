@@ -28,9 +28,26 @@ final class FitPicStore: ObservableObject {
 
     // MARK: Queries
 
+    /// All fit pics, newest first (descending by capture time).
+    var allSorted: [FitPic] {
+        fitPics.sorted { $0.date > $1.date }
+    }
+
+    /// Fit pics grouped by calendar day, newest day first, and newest pic first within each day.
+    /// Each element is the start-of-day `Date` paired with that day's pics.
+    var groupedByDay: [(day: Date, pics: [FitPic])] {
+        let calendar = Calendar.current
+        let groups = Dictionary(grouping: fitPics) { calendar.startOfDay(for: $0.date) }
+        return groups
+            .map { (day: $0.key, pics: $0.value.sorted { $0.date > $1.date }) }
+            .sorted { $0.day > $1.day }
+    }
+
     /// All fit pics recorded on the given calendar day, newest first.
     func fitPicsForDate(_ date: Date) -> [FitPic] {
-        fitPics.filter { Calendar.current.isDate($0.date, inSameDayAs: date) }
+        fitPics
+            .filter { Calendar.current.isDate($0.date, inSameDayAs: date) }
+            .sorted { $0.date > $1.date }
     }
 
     // MARK: Mutations
@@ -67,7 +84,8 @@ final class FitPicStore: ObservableObject {
     private func load() {
         guard let data = UserDefaults.standard.data(forKey: saveKey) else { return }
         do {
-            fitPics = try JSONDecoder().decode([FitPic].self, from: data)
+            let decoded = try JSONDecoder().decode([FitPic].self, from: data)
+            fitPics = decoded.sorted { $0.date > $1.date }
         } catch {
             print("[FitPicStore] load error: \(error)")
         }

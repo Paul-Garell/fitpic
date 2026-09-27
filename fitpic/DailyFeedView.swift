@@ -15,15 +15,18 @@ struct DailyFeedView: View {
     @State private var showCamera = false
     @State private var editingFitPic: FitPic? = nil
 
-    private var todaysPics: [FitPic] {
-        store.fitPicsForDate(Date())
+    /// Fit pics grouped by day, newest day first.
+    private var sections: [(day: Date, pics: [FitPic])] {
+        store.groupedByDay
     }
+
+    private var hasPics: Bool { !store.fitPics.isEmpty }
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
             feedContent
 
-            if !todaysPics.isEmpty {
+            if hasPics {
                 addButton
                     .padding(.top, 16)
                     .padding(.trailing, 16)
@@ -49,27 +52,55 @@ struct DailyFeedView: View {
 
     @ViewBuilder
     private var feedContent: some View {
-        if todaysPics.isEmpty {
+        if !hasPics {
             emptyState
         } else {
             ScrollView {
-                LazyVStack(spacing: 20) {
+                LazyVStack(alignment: .leading, spacing: 24, pinnedViews: [.sectionHeaders]) {
                     Color.clear.frame(height: 52)   // clears the floating add button
-                    ForEach(todaysPics) { fitPic in
-                        FitPicCell(
-                            fitPic: fitPic,
-                            onDelete: {
-                                ImageStorage.shared.delete(path: fitPic.imagePath)
-                                store.delete(fitPic)
-                            },
-                            onEditTags: { editingFitPic = fitPic }
-                        )
+
+                    ForEach(sections, id: \.day) { section in
+                        Section {
+                            ForEach(section.pics) { fitPic in
+                                FitPicCell(
+                                    fitPic: fitPic,
+                                    showsDate: false,   // day is shown in the section header
+                                    onDelete: {
+                                        ImageStorage.shared.delete(path: fitPic.imagePath)
+                                        store.delete(fitPic)
+                                    },
+                                    onEditTags: { editingFitPic = fitPic }
+                                )
+                            }
+                        } header: {
+                            sectionHeader(for: section.day)
+                        }
                     }
                 }
                 .padding(.bottom, 40)
             }
             .background(Color(.systemGroupedBackground))
         }
+    }
+
+    // MARK: Section header
+
+    private func sectionHeader(for day: Date) -> some View {
+        Text(dayLabel(for: day))
+            .font(.title3)
+            .fontWeight(.bold)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(Color(.systemGroupedBackground))
+    }
+
+    /// "Today", "Yesterday", or a full date like "September 25, 2026".
+    private func dayLabel(for day: Date) -> String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(day) { return "Today" }
+        if calendar.isDateInYesterday(day) { return "Yesterday" }
+        return day.formatted(.dateTime.weekday(.wide).month(.wide).day().year())
     }
 
     // MARK: Empty state
