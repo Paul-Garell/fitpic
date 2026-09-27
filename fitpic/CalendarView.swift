@@ -7,16 +7,21 @@ struct CalendarView: View {
     @State private var months: [Date] = []
     @State private var selectedDay: SelectedDay? = nil
 
+    /// How many past months to show, in addition to the current month.
+    private static let pastMonthsToLoad = 24
+
     init() {
         let calendar = Calendar.current
-        let startMonth = calendar.date(byAdding: .month, value: -6, to: Date())!
-        var initial: [Date] = []
-        for i in 0..<12 {
-            if let month = calendar.date(byAdding: .month, value: i, to: startMonth) {
-                initial.append(month)
+        let currentMonth = calendar.startOfMonth(for: Date())
+
+        // Oldest → newest, ending at the current month. No future months.
+        var loaded: [Date] = []
+        for offset in stride(from: Self.pastMonthsToLoad, through: 0, by: -1) {
+            if let month = calendar.date(byAdding: .month, value: -offset, to: currentMonth) {
+                loaded.append(month)
             }
         }
-        _months = State(initialValue: initial)
+        _months = State(initialValue: loaded)
     }
 
     var body: some View {
@@ -34,8 +39,9 @@ struct CalendarView: View {
                     .padding()
                 }
                 .onAppear {
+                    // Land on the current month at the bottom; scroll up for history.
                     let current = Calendar.current.startOfMonth(for: Date())
-                    proxy.scrollTo(current, anchor: .center)
+                    proxy.scrollTo(current, anchor: .bottom)
                 }
             }
             .navigationBarHidden(true)
