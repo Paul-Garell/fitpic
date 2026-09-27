@@ -235,47 +235,8 @@ extension CameraService: AVCapturePhotoCaptureDelegate {
         guard let data = photo.fileDataRepresentation(),
               let image = UIImage(data: data) else { return }
 
-        let finalImage = captureAspectRatio.map { image.cropped(toAspectRatio: $0) } ?? image
+        let finalImage = captureAspectRatio.map { image.croppedToAspectRatio($0) } ?? image
         DispatchQueue.main.async { self.capturedImage = finalImage }
-    }
-}
-
-// MARK: - UIImage center-crop helper
-
-private extension UIImage {
-    /// Returns a center-cropped copy matching the given width:height ratio.
-    /// Respects the image's orientation by normalizing first.
-    func cropped(toAspectRatio ratio: CGFloat) -> UIImage {
-        // Normalize orientation so pixel geometry matches display geometry.
-        let normalized = normalizedUp()
-        guard let cg = normalized.cgImage else { return normalized }
-
-        let width = CGFloat(cg.width)
-        let height = CGFloat(cg.height)
-        let currentRatio = width / height
-
-        var cropRect: CGRect
-        if currentRatio > ratio {
-            // Too wide — trim the sides.
-            let newWidth = height * ratio
-            cropRect = CGRect(x: (width - newWidth) / 2, y: 0, width: newWidth, height: height)
-        } else {
-            // Too tall — trim top/bottom.
-            let newHeight = width / ratio
-            cropRect = CGRect(x: 0, y: (height - newHeight) / 2, width: width, height: newHeight)
-        }
-
-        guard let cropped = cg.cropping(to: cropRect.integral) else { return normalized }
-        return UIImage(cgImage: cropped, scale: normalized.scale, orientation: .up)
-    }
-
-    /// Redraws the image with `.up` orientation so its pixel buffer matches its visual layout.
-    func normalizedUp() -> UIImage {
-        guard imageOrientation != .up else { return self }
-        let format = UIGraphicsImageRendererFormat.default()
-        format.scale = scale
-        let renderer = UIGraphicsImageRenderer(size: size, format: format)
-        return renderer.image { _ in draw(in: CGRect(origin: .zero, size: size)) }
     }
 }
 

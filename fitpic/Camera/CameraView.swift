@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 // MARK: - CameraView
 
@@ -21,6 +22,9 @@ struct CameraView: View {
     @State private var previewImage: UIImage? = nil
     @State private var acceptedImage: UIImage? = nil   // set after green-check; triggers tag sheet
     @State private var pendingTags: [String] = []
+
+    // Photo-library upload
+    @State private var pickerItem: PhotosPickerItem? = nil
 
     var body: some View {
         ZStack {
@@ -78,6 +82,24 @@ struct CameraView: View {
             previewImage = image
             camera.capturedImage = nil
         }
+        // Sink photo-library selections into the same review pipeline
+        .onChange(of: pickerItem) { _, item in
+            guard let item else { return }
+            loadPickedPhoto(item)
+        }
+    }
+
+    // MARK: Photo-library loading
+
+    private func loadPickedPhoto(_ item: PhotosPickerItem) {
+        Task {
+            defer { pickerItem = nil }
+            guard let data = try? await item.loadTransferable(type: Data.self),
+                  let image = UIImage(data: data) else { return }
+            // Crop to the same aspect ratio the camera uses so preview/feed match.
+            let cropped = image.croppedToAspectRatio(captureAspectRatio)
+            await MainActor.run { previewImage = cropped }
+        }
     }
 
     // MARK: Top bar
@@ -106,9 +128,33 @@ struct CameraView: View {
             if camera.zoomOptions.count > 1 {
                 zoomPill
             }
-            shutterButton
+            captureRow
         }
         .padding(.bottom, 40)
+    }
+
+    /// Library button (left) · shutter (center) · spacer (right) to keep the shutter centered.
+    private var captureRow: some View {
+        ZStack {
+            shutterButton
+
+            HStack {
+                photoLibraryButton
+                Spacer()
+            }
+            .padding(.horizontal, 36)
+        }
+    }
+
+    private var photoLibraryButton: some View {
+        PhotosPicker(selection: $pickerItem, matching: .images, photoLibrary: .shared()) {
+            Image(systemName: "photo.on.rectangle")
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundColor(.white)
+                .frame(width: 52, height: 52)
+                .background(Color.black.opacity(0.35))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
     }
 
     private var shutterButton: some View {
