@@ -57,6 +57,7 @@ struct DailyFeedView: View {
                 store.update(updated)
             }
         }
+        .tagFilterable()
     }
 
     // MARK: Feed content

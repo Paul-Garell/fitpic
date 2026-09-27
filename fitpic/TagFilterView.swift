@@ -1,36 +1,38 @@
 import SwiftUI
 
-// MARK: - DayDetailView
+// MARK: - TagFilterView
 
-/// Full-size, scrollable view of every fit pic taken on a given day.
-/// Presented as a sheet from the calendar. Supports delete and tag editing,
-/// mirroring the daily feed's cell behavior.
-struct DayDetailView: View {
+/// A sheet listing every fit pic that carries a given tag, sorted newest first.
+/// Presented when a display TagChip is tapped anywhere in the app.
+/// Reuses FitPicCell (with its full date header) and supports delete + edit tags.
+struct TagFilterView: View {
 
     @EnvironmentObject private var store: FitPicStore
     @Environment(\.dismiss) private var dismiss
 
-    let day: Date
+    let tag: String
 
     @State private var editingFitPic: FitPic? = nil
 
-    /// Live list of the day's pics, newest first — recomputed as the store changes.
+    /// Live list of pics with this tag, recomputed as the store changes.
     private var pics: [FitPic] {
-        store.fitPicsForDate(day)
+        store.fitPicsWithTag(tag)
     }
 
     var body: some View {
         NavigationStack {
             Group {
                 if pics.isEmpty {
-                    emptyState
+                    ContentUnavailableView(
+                        "No fits tagged \u{201C}\(tag)\u{201D}",
+                        systemImage: "tag"
+                    )
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 20) {
                             ForEach(pics) { fitPic in
                                 FitPicCell(
                                     fitPic: fitPic,
-                                    showsDate: false,   // the day is in the nav title
                                     onDelete: {
                                         ImageStorage.shared.delete(path: fitPic.imagePath)
                                         store.delete(fitPic)
@@ -44,7 +46,7 @@ struct DayDetailView: View {
                     .background(Color(.systemGroupedBackground))
                 }
             }
-            .navigationTitle(titleText)
+            .navigationTitle("#\(tag)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -52,35 +54,22 @@ struct DayDetailView: View {
                 }
             }
             .sheet(item: $editingFitPic) { fitPic in
-                DayEditTagsView(fitPic: fitPic) { updated in
+                TagFilterEditTagsView(fitPic: fitPic) { updated in
                     store.update(updated)
                 }
             }
-            // If the last pic for the day is deleted, close the sheet.
+            // Close automatically if no pics carry this tag anymore.
             .onChange(of: pics.isEmpty) { _, isEmpty in
                 if isEmpty { dismiss() }
             }
             .tagFilterable()
         }
     }
-
-    private var titleText: String {
-        day.formatted(.dateTime.weekday(.abbreviated).month(.wide).day())
-    }
-
-    private var emptyState: some View {
-        ContentUnavailableView(
-            "No fits this day",
-            systemImage: "photo.on.rectangle.angled"
-        )
-    }
 }
 
-// MARK: - DayEditTagsView
+// MARK: - Edit-tags adapter
 
-/// Adapter that feeds an existing FitPic's tags into AddTagsView for editing.
-private struct DayEditTagsView: View {
-
+private struct TagFilterEditTagsView: View {
     let fitPic: FitPic
     var onSave: (FitPic) -> Void
 
@@ -104,6 +93,6 @@ private struct DayEditTagsView: View {
 }
 
 #Preview {
-    DayDetailView(day: Date())
+    TagFilterView(tag: "Casual")
         .environmentObject(FitPicStore())
 }

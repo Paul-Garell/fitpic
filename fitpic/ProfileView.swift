@@ -22,6 +22,7 @@ struct ProfileView: View {
             }
             .navigationBarHidden(true)
         }
+        .tagFilterable()
     }
 }
 

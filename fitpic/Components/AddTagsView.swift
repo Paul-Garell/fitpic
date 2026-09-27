@@ -55,7 +55,7 @@ struct AddTagsView: View {
                             FlowLayout(horizontalSpacing: 8, verticalSpacing: 8) {
                                 ForEach(available, id: \.self) { tag in
                                     Button { tags.append(tag) } label: {
-                                        TagChip(label: tag)
+                                        TagChip(label: tag, interactive: false)
                                     }
                                 }
                             }

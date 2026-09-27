@@ -50,6 +50,13 @@ final class FitPicStore: ObservableObject {
             .sorted { $0.date > $1.date }
     }
 
+    /// All fit pics carrying the given tag, newest first.
+    func fitPicsWithTag(_ tag: String) -> [FitPic] {
+        fitPics
+            .filter { $0.tags.contains(tag) }
+            .sorted { $0.date > $1.date }
+    }
+
     // MARK: Mutations
 
     /// Appends a new FitPic without removing any existing ones for the same day.
