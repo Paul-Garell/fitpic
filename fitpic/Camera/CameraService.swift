@@ -117,8 +117,29 @@ final class CameraService: NSObject, ObservableObject {
 
         session.addInput(input)
         currentDevice = device
-        DispatchQueue.main.async { self.zoomOptions = Self.buildZoomOptions(for: device) }
+
+        let options = Self.buildZoomOptions(for: device)
+        DispatchQueue.main.async { self.zoomOptions = options }
+
+        // Open at the "1×" lens rather than the widest (0.5×) lens.
+        applyDefaultZoom(device: device, options: options)
         return true
+    }
+
+    /// Sets the initial zoom to the user-facing 1× option if present, else the widest.
+    private func applyDefaultZoom(device: AVCaptureDevice, options: [ZoomOption]) {
+        let target = options.first { $0.displayLabel == "1×" }?.deviceFactor ?? 1.0
+        let clamped = target.clamped(
+            to: device.minAvailableVideoZoomFactor...device.maxAvailableVideoZoomFactor
+        )
+        do {
+            try device.lockForConfiguration()
+            device.videoZoomFactor = clamped
+            device.unlockForConfiguration()
+            DispatchQueue.main.async { self.zoomFactor = clamped }
+        } catch {
+            print("[CameraService] default zoom error: \(error)")
+        }
     }
 
     // MARK: - Zoom option builder
@@ -126,58 +147,67 @@ final class CameraService: NSObject, ObservableObject {
     /// Derives the correct zoom-pill buttons directly from AVFoundation metadata.
     ///
     /// `virtualDeviceSwitchOverVideoZoomFactors` gives the *hardware* `videoZoomFactor`
-    /// values at which the system switches physical lenses. Combined with the 1× baseline
-    /// we can label them correctly as user-facing multipliers (0.5×, 1×, 2×, 3×…).
+    /// values at which the system switches physical lenses. The widest lens always sits
+    /// at deviceFactor 1.0. The user-facing "1×" baseline is the main wide lens — i.e.
+    /// the first switch-over factor when an ultra-wide exists, otherwise 1.0.
     ///
-    /// Example — iPhone 15 Pro triple camera:
-    ///   switchOverFactors = [2, 6]   (ultra-wide→wide at ×2, wide→tele at ×6)
-    ///   ⟹  options: [("0.5×", 1.0), ("1×", 2.0), ("2×", 4.0), ("3×", 6.0)]
+    /// Each user-facing multiplier is simply `deviceFactor / baseline`.
     ///
-    /// Example — iPhone SE (single camera):
-    ///   switchOverFactors = []
-    ///   ⟹  options: [("1×", 1.0)]
+    /// Example — triple camera reporting switchOvers = [2, 6]:
+    ///   baseline = 2.0 (wide lens)
+    ///   • deviceFactor 1.0 → 1.0/2.0 = 0.5×   (ultra-wide)
+    ///   • deviceFactor 2.0 → 2.0/2.0 = 1×      (wide)
+    ///   • deviceFactor 6.0 → 6.0/2.0 = 3×      (tele)
+    ///
+    /// Example — dual wide+tele reporting switchOvers = [2]:
+    ///   baseline = 1.0 (no ultra-wide)
+    ///   • deviceFactor 1.0 → 1×
+    ///   • deviceFactor 2.0 → 2×
+    ///
+    /// Example — single camera, switchOvers = []:
+    ///   ⟹ [("1×", 1.0)]
     private static func buildZoomOptions(for device: AVCaptureDevice) -> [ZoomOption] {
         let switchOvers = device.virtualDeviceSwitchOverVideoZoomFactors.map { CGFloat(truncating: $0) }
 
         guard !switchOvers.isEmpty else {
-            // Single-lens device — just expose 1×
+            // Single-lens device — just expose 1×.
             return [ZoomOption(displayLabel: "1×", deviceFactor: 1.0)]
         }
 
-        // The widest lens sits at deviceFactor = 1.0.
-        // Each switchOver value is where the *next* lens begins.
-        // User-facing labels count from the widest lens outward.
-        // If the device supports an ultra-wide (switchOvers has an entry at the start),
-        // the first button is "0.5×" at deviceFactor 1.0 and "1×" at switchOvers[0].
-        //
-        // Heuristic: a device has ultra-wide if it can zoom below the first switchover
-        // at a factor ≤ 1.0 (i.e. minAvailableVideoZoomFactor < switchOvers[0]).
+        // A device has an ultra-wide if it can zoom out below its first lens switch-over.
         let hasUltraWide = device.minAvailableVideoZoomFactor < switchOvers[0]
 
-        // Build raw device-factor list
+        // Candidate hardware zoom stops: the widest lens (1.0) plus every switch-over point.
         var deviceFactors: [CGFloat] = hasUltraWide ? [1.0] : []
         deviceFactors.append(contentsOf: switchOvers)
 
-        // Build user-facing multipliers: starting from the widest end.
-        // If ultra-wide exists the steps are 0.5×, 1×, 2×, 3×…
-        // Otherwise they start at 1×, 2×, 3×…
-        let userMultipliers: [Double] = {
-            let start: Double = hasUltraWide ? 0.5 : 1.0
-            return deviceFactors.enumerated().map { start * pow(2.0, Double($0.offset)) }
-        }()
+        // The user-facing "1×" corresponds to the main wide lens:
+        //   • with ultra-wide  → the first switch-over factor (ultra-wide→wide)
+        //   • without          → 1.0
+        let baseline: CGFloat = hasUltraWide ? switchOvers[0] : 1.0
 
-        let options = zip(deviceFactors, userMultipliers).map { (deviceFactor, userMult) in
-            ZoomOption(
-                displayLabel: userMult < 1 ? String(format: "%.1g×", userMult) : "\(Int(userMult))×",
+        let options = deviceFactors.map { deviceFactor -> ZoomOption in
+            let userMultiplier = deviceFactor / baseline
+            return ZoomOption(
+                displayLabel: Self.zoomLabel(for: userMultiplier),
                 deviceFactor: deviceFactor
             )
         }
 
-        // Clamp to what the device actually supports
+        // Clamp to what the device actually supports.
         return options.filter {
             $0.deviceFactor >= device.minAvailableVideoZoomFactor &&
             $0.deviceFactor <= device.maxAvailableVideoZoomFactor
         }
+    }
+
+    /// Formats a user-facing zoom multiplier: "0.5×", "1×", "2×", "3.5×".
+    private static func zoomLabel(for multiplier: CGFloat) -> String {
+        // Whole numbers render without a decimal; fractional values keep one decimal.
+        if abs(multiplier.rounded() - multiplier) < 0.05 {
+            return "\(Int(multiplier.rounded()))×"
+        }
+        return String(format: "%.1f×", multiplier)
     }
 
     // MARK: Controls
@@ -191,7 +221,7 @@ final class CameraService: NSObject, ObservableObject {
             session.beginConfiguration()
             addVideoInput(position: isFrontCamera ? .front : .back)
             session.commitConfiguration()
-            DispatchQueue.main.async { self.zoomFactor = 1.0 }
+            // addVideoInput applies the default (1×) zoom for the new device.
         }
     }
 
