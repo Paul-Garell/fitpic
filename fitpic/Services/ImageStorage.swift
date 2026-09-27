@@ -1,4 +1,5 @@
 import UIKit
+import ImageIO
 
 // MARK: - ImageStorage
 
@@ -42,6 +43,31 @@ final class ImageStorage {
         guard let url = absoluteURL(for: path),
               let data = try? Data(contentsOf: url) else { return nil }
         return UIImage(data: data)
+    }
+
+    /// Loads a downsampled thumbnail for the given path, sized to roughly
+    /// `maxPixelSize` points on its longest edge (multiplied internally for retina).
+    /// Efficient for small UI like calendar cells.
+    func loadThumbnail(path: String, maxPixelSize: CGFloat) -> UIImage? {
+        guard let url = absoluteURL(for: path) else { return nil }
+
+        let sourceOptions = [kCGImageSourceShouldCache: false] as CFDictionary
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, sourceOptions) else { return nil }
+
+        // Assume a 3x retina budget so thumbnails stay crisp on any device;
+        // the extra pixels are negligible at these small sizes.
+        let pixelBudget = maxPixelSize * 3
+        let downsampleOptions = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,   // respect orientation
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceThumbnailMaxPixelSize: pixelBudget
+        ] as CFDictionary
+
+        guard let cgThumb = CGImageSourceCreateThumbnailAtIndex(source, 0, downsampleOptions) else {
+            return nil
+        }
+        return UIImage(cgImage: cgThumb)
     }
 
     // MARK: Delete

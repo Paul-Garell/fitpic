@@ -11,7 +11,7 @@ import SwiftUI
 /// Flow: CameraView (owns capture + review + tag entry) → onComplete → save → feed updates.
 struct DailyFeedView: View {
 
-    @StateObject private var store = FitPicStore()
+    @EnvironmentObject private var store: FitPicStore
     @State private var showCamera = false
     @State private var editingFitPic: FitPic? = nil
 
@@ -191,4 +191,5 @@ private struct EditTagsView: View {
 
 #Preview {
     DailyFeedView()
+        .environmentObject(FitPicStore())
 }
