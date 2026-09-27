@@ -162,9 +162,9 @@ struct DailyFeedView: View {
     private var addButton: some View {
         Button { showCamera = true } label: {
             Image(systemName: "plus")
-                .font(.system(size: 17, weight: .semibold))
+                .font(.system(size: 21, weight: .semibold))
                 .foregroundStyle(.white)
-                .frame(width: 36, height: 36)
+                .frame(width: 45, height: 45)
                 .background(Color.blue)
                 .clipShape(Circle())
                 .shadow(color: .black.opacity(0.18), radius: 4, x: 0, y: 2)
