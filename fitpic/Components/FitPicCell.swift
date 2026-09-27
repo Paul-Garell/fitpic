@@ -71,24 +71,9 @@ struct FitPicCell: View {
     private var photo: some View {
         GeometryReader { geo in
             let height = geo.size.width / photoAspectRatio
-            Group {
-                if let image = ImageStorage.shared.load(path: fitPic.imagePath) {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: geo.size.width, height: height)
-                        .clipped()
-                } else {
-                    Rectangle()
-                        .fill(Color(.systemFill))
-                        .frame(width: geo.size.width, height: height)
-                        .overlay {
-                            Image(systemName: "photo")
-                                .font(.largeTitle)
-                                .foregroundStyle(.tertiary)
-                        }
-                }
-            }
+            AsyncStoredImage(path: fitPic.imagePath, targetWidth: geo.size.width)
+                .frame(width: geo.size.width, height: height)
+                .clipped()
         }
         // Fix the frame so the parent VStack knows the height
         .aspectRatio(photoAspectRatio, contentMode: .fit)

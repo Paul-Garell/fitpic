@@ -15,9 +15,20 @@ struct DailyFeedView: View {
     @State private var showCamera = false
     @State private var editingFitPic: FitPic? = nil
 
-    /// Fit pics grouped by day, newest day first.
-    private var sections: [(day: Date, pics: [FitPic])] {
+    /// How many day-sections to render initially and to add per page.
+    private static let sectionPageSize = 5
+
+    /// Number of day-sections currently rendered (grows as the user scrolls down).
+    @State private var visibleSectionCount = sectionPageSize
+
+    /// All day-sections, newest day first.
+    private var allSections: [(day: Date, pics: [FitPic])] {
         store.groupedByDay
+    }
+
+    /// The windowed slice of sections actually rendered.
+    private var visibleSections: [(day: Date, pics: [FitPic])] {
+        Array(allSections.prefix(visibleSectionCount))
     }
 
     private var hasPics: Bool { !store.fitPics.isEmpty }
@@ -59,7 +70,7 @@ struct DailyFeedView: View {
                 LazyVStack(alignment: .leading, spacing: 24, pinnedViews: [.sectionHeaders]) {
                     Color.clear.frame(height: 52)   // clears the floating add button
 
-                    ForEach(sections, id: \.day) { section in
+                    ForEach(visibleSections, id: \.day) { section in
                         Section {
                             ForEach(section.pics) { fitPic in
                                 FitPicCell(
@@ -74,13 +85,32 @@ struct DailyFeedView: View {
                             }
                         } header: {
                             sectionHeader(for: section.day)
+                                .onAppear { loadMoreIfNeeded(currentSection: section.day) }
                         }
+                    }
+
+                    if visibleSectionCount < allSections.count {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 20)
                     }
                 }
                 .padding(.bottom, 40)
             }
             .background(Color(.systemGroupedBackground))
         }
+    }
+
+    /// Grows the visible window when the user reaches one of the last rendered sections.
+    private func loadMoreIfNeeded(currentSection day: Date) {
+        guard visibleSectionCount < allSections.count else { return }
+
+        // Trigger when the section that appeared is within the last two rendered.
+        let thresholdIndex = max(0, visibleSectionCount - 2)
+        guard let index = visibleSections.firstIndex(where: { $0.day == day }),
+              index >= thresholdIndex else { return }
+
+        visibleSectionCount = min(visibleSectionCount + Self.sectionPageSize, allSections.count)
     }
 
     // MARK: Section header
