@@ -13,6 +13,9 @@ struct AsyncStoredImage: View {
 
     let path: String
     let targetWidth: CGFloat
+    /// Optional callback invoked with the loaded image (e.g. so a parent can
+    /// reuse it for a zoom overlay). Passes nil while loading/failed.
+    var onImageLoaded: ((UIImage?) -> Void)? = nil
 
     @State private var image: UIImage?
 
@@ -32,7 +35,9 @@ struct AsyncStoredImage: View {
         }
         // Reload only when the path or target size meaningfully changes.
         .task(id: LoadKey(path: path, width: Int(targetWidth.rounded()))) {
-            image = await Self.load(path: path, targetWidth: targetWidth)
+            let loaded = await Self.load(path: path, targetWidth: targetWidth)
+            image = loaded
+            onImageLoaded?(loaded)
         }
     }
 

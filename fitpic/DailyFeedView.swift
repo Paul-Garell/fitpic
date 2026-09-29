@@ -14,6 +14,7 @@ struct DailyFeedView: View {
     @EnvironmentObject private var store: FitPicStore
     @State private var showCamera = false
     @State private var editingFitPic: FitPic? = nil
+    @State private var catalogingFitPic: FitPic? = nil
 
     /// How many day-sections to render initially and to add per page.
     private static let sectionPageSize = 5
@@ -57,6 +58,9 @@ struct DailyFeedView: View {
                 store.update(updated)
             }
         }
+        .sheet(item: $catalogingFitPic) { fitPic in
+            ClosetLabView(initialFitPic: fitPic)
+        }
         .tagFilterable()
     }
 
@@ -81,7 +85,8 @@ struct DailyFeedView: View {
                                         ImageStorage.shared.delete(path: fitPic.imagePath)
                                         store.delete(fitPic)
                                     },
-                                    onEditTags: { editingFitPic = fitPic }
+                                    onEditTags: { editingFitPic = fitPic },
+                                    onCatalog: { catalogingFitPic = fitPic }
                                 )
                             }
                         } header: {

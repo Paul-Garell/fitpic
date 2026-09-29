@@ -16,9 +16,11 @@ final class ImageStorage {
     // MARK: Write
 
     /// Writes `image` to disk and returns its relative path, or `nil` on failure.
-    func save(_ image: UIImage) -> String? {
+    /// - Parameter subdirectory: Optional override of the default "FitPics" folder
+    ///   (e.g. "Closet" for garment thumbnails).
+    func save(_ image: UIImage, subdirectory: String? = nil) -> String? {
         let filename = "\(UUID().uuidString).jpg"
-        let relativePath = "\(subdirectory)/\(filename)"
+        let relativePath = "\(subdirectory ?? self.subdirectory)/\(filename)"
 
         guard let url = absoluteURL(for: relativePath) else { return nil }
 

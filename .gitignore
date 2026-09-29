@@ -1,0 +1,14 @@
+# Documentation (internal, not for public repo)
+docs/
+
+# Classification model weights (license-restricted, do not commit)
+classificationModel/
+
+# macOS
+.DS_Store
+
+# Xcode user state / build artifacts
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/

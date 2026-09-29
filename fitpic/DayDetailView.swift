@@ -13,6 +13,7 @@ struct DayDetailView: View {
     let day: Date
 
     @State private var editingFitPic: FitPic? = nil
+    @State private var catalogingFitPic: FitPic? = nil
 
     /// Live list of the day's pics, newest first — recomputed as the store changes.
     private var pics: [FitPic] {
@@ -35,7 +36,8 @@ struct DayDetailView: View {
                                         ImageStorage.shared.delete(path: fitPic.imagePath)
                                         store.delete(fitPic)
                                     },
-                                    onEditTags: { editingFitPic = fitPic }
+                                    onEditTags: { editingFitPic = fitPic },
+                                    onCatalog: { catalogingFitPic = fitPic }
                                 )
                             }
                         }
@@ -55,6 +57,9 @@ struct DayDetailView: View {
                 DayEditTagsView(fitPic: fitPic) { updated in
                     store.update(updated)
                 }
+            }
+            .sheet(item: $catalogingFitPic) { fitPic in
+                ClosetLabView(initialFitPic: fitPic)
             }
             // If the last pic for the day is deleted, close the sheet.
             .onChange(of: pics.isEmpty) { _, isEmpty in

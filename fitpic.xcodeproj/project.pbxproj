@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		C0FFEE0000000000000000A7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B46B995B30608A6000713FEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B46B996230608A6000713FEA;
+			remoteInfo = fitpic;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		B46B996330608A6000713FEA /* fitpic.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = fitpic.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C0FFEE0000000000000000A2 /* fitpicTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = fitpicTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +27,22 @@
 			path = fitpic;
 			sourceTree = "<group>";
 		};
+		C0FFEE0000000000000000A3 /* fitpicTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = fitpicTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		B46B996030608A6000713FEA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C0FFEE0000000000000000A5 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				B46B996530608A6000713FEA /* fitpic */,
+				C0FFEE0000000000000000A3 /* fitpicTests */,
 				B46B996430608A6000713FEA /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				B46B996330608A6000713FEA /* fitpic.app */,
+				C0FFEE0000000000000000A2 /* fitpicTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,6 +95,29 @@
 			productReference = B46B996330608A6000713FEA /* fitpic.app */;
 			productType = "com.apple.product-type.application";
 		};
+		C0FFEE0000000000000000A1 /* fitpicTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C0FFEE0000000000000000A9 /* Build configuration list for PBXNativeTarget "fitpicTests" */;
+			buildPhases = (
+				C0FFEE0000000000000000A4 /* Sources */,
+				C0FFEE0000000000000000A5 /* Frameworks */,
+				C0FFEE0000000000000000A6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C0FFEE0000000000000000A8 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C0FFEE0000000000000000A3 /* fitpicTests */,
+			);
+			name = fitpicTests;
+			packageProductDependencies = (
+			);
+			productName = fitpicTests;
+			productReference = C0FFEE0000000000000000A2 /* fitpicTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -82,6 +130,10 @@
 				TargetAttributes = {
 					B46B996230608A6000713FEA = {
 						CreatedOnToolsVersion = 26.6;
+					};
+					C0FFEE0000000000000000A1 = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = B46B996230608A6000713FEA;
 					};
 				};
 			};
@@ -100,12 +152,20 @@
 			projectRoot = "";
 			targets = (
 				B46B996230608A6000713FEA /* fitpic */,
+				C0FFEE0000000000000000A1 /* fitpicTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		B46B996130608A6000713FEA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C0FFEE0000000000000000A6 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +182,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C0FFEE0000000000000000A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C0FFEE0000000000000000A8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B46B996230608A6000713FEA /* fitpic */;
+			targetProxy = C0FFEE0000000000000000A7 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		B46B996E30608A6100713FEA /* Debug */ = {
@@ -178,7 +253,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -236,7 +311,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -312,6 +387,50 @@
 			};
 			name = Release;
 		};
+		C0FFEE0000000000000000AA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KG89Y2E7B2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = personalBundle.fitpicTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/fitpic.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/fitpic";
+			};
+			name = Debug;
+		};
+		C0FFEE0000000000000000AB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KG89Y2E7B2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = personalBundle.fitpicTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/fitpic.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/fitpic";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -329,6 +448,15 @@
 			buildConfigurations = (
 				B46B997130608A6100713FEA /* Debug */,
 				B46B997230608A6100713FEA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C0FFEE0000000000000000A9 /* Build configuration list for PBXNativeTarget "fitpicTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C0FFEE0000000000000000AA /* Debug */,
+				C0FFEE0000000000000000AB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -20,6 +20,10 @@ struct FitPicCell: View {
     var showsDate: Bool = true
     var onDelete: (() -> Void)? = nil
     var onEditTags: (() -> Void)? = nil
+    var onCatalog: (() -> Void)? = nil
+
+    /// Captured loaded image, reused for the pinch-zoom overlay.
+    @State private var loadedImage: UIImage?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -29,8 +33,10 @@ struct FitPicCell: View {
                 tagStrip
             }
         }
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
         .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
     }
 
@@ -71,9 +77,15 @@ struct FitPicCell: View {
     private var photo: some View {
         GeometryReader { geo in
             let height = geo.size.width / photoAspectRatio
-            AsyncStoredImage(path: fitPic.imagePath, targetWidth: geo.size.width)
-                .frame(width: geo.size.width, height: height)
-                .clipped()
+            AsyncStoredImage(
+                path: fitPic.imagePath,
+                targetWidth: geo.size.width,
+                onImageLoaded: { loadedImage = $0 }
+            )
+            .frame(width: geo.size.width, height: height)
+            // Round the top corners to match the card at rest.
+            .clipShape(.rect(topLeadingRadius: 16, topTrailingRadius: 16))
+            .pinchToZoom(image: loadedImage)
         }
         // Fix the frame so the parent VStack knows the height
         .aspectRatio(photoAspectRatio, contentMode: .fit)
@@ -86,6 +98,14 @@ struct FitPicCell: View {
                     onEditTags()
                 } label: {
                     Label("Edit Tags", systemImage: "tag")
+                }
+            }
+
+            if let onCatalog {
+                Button {
+                    onCatalog()
+                } label: {
+                    Label("Catalog Items", systemImage: "hanger")
                 }
             }
 
